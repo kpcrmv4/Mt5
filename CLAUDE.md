@@ -41,6 +41,25 @@ Claude วิเคราะห์ indicators แล้วจำแนกตล�
 - **Strong Downtrend** — เปิดเฉพาะ Sell grids, เพิ่ม lot
 - **High Volatility** — ขยาย grid spacing, ลด lot size
 
+### News Shield — ป้องกัน Grid Blow Up ช่วงข่าวแรง
+ระบบดึงข่าวและวิเคราะห์ sentiment ด้วย Claude เพื่อปรับ risk อัตโนมัติ:
+
+**News Sources:**
+- Forex Factory Economic Calendar (high-impact events: NFP, FOMC, CPI)
+- RSS feeds (Reuters, Bloomberg)
+- Social media sentiment (Truth Social, X) — optional
+
+**Impact Levels & Actions:**
+| Level | ตัวอย่าง | Action |
+|-------|---------|--------|
+| 🟢 Low | Minor economic data | Grid ทำงานปกติ |
+| 🟡 Medium | Trump tweet เรื่อง trade | ลด lot 50%, ขยาย spacing 1.5x |
+| 🔴 High | NFP, FOMC, CPI release | หยุดเปิด order ใหม่, รอ 30 นาที |
+| ⚫ Critical | War/crisis, unexpected rate decision | ปิด positions ทั้งหมด (emergency) |
+
+**News Check Interval:** ทุก 2 นาที (configurable)
+**Pre-event Buffer:** หยุดเปิด order 30 นาทีก่อน high-impact event
+
 ### Key Config Parameters
 | Parameter | Default | Description |
 |-----------|---------|-------------|
@@ -52,6 +71,9 @@ Claude วิเคราะห์ indicators แล้วจำแนกตล�
 | FILTER_EMA_ENABLED | true | กรอง entry ด้วย EMA crossover |
 | AI_AUTO_ENABLED | true | เปิด/ปิด AI ปรับ config อัตโนมัติ |
 | AI_INTERVAL_MINUTES | 5 | ความถี่ AI วิเคราะห์ตลาด |
+| NEWS_SHIELD_ENABLED | true | เปิด/ปิด News Shield |
+| NEWS_CHECK_INTERVAL | 2 | ความถี่เช็คข่าว (นาที) |
+| NEWS_PRE_EVENT_BUFFER | 30 | หยุด trade ก่อน high-impact event (นาที) |
 
 ## Project Structure
 
@@ -71,6 +93,7 @@ Mt5/
 │       │   ├── mt5.service.js       # MetaAPI connection & order management
 │       │   ├── grid.service.js      # Grid calculation & management
 │       │   ├── ai-regime.service.js # Claude AI regime detection
+│       │   ├── news-shield.service.js # News sentiment & event shield
 │       │   └── indicator.service.js # Technical indicator calculations
 │       ├── routes/
 │       │   ├── trading.routes.js    # REST API for trading operations
