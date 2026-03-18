@@ -1,0 +1,25 @@
+{
+  "name": "gold-unlock-backend",
+  "version": "1.0.0",
+  "description": "Grid Trading Bot Backend with AI Regime Detection for XAU/USD",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --coverage"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "metaapi.cloud-sdk": "^27.0.2",
+    "socket.io": "^4.8.1",
+    "technicalindicators": "^3.1.0",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9"
+  }
+}
