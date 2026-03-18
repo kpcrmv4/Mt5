@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gold Unlock - Beginner's Guide</title>
+  <style>
+    :root {
+      --gold: #F5A623;
+      --gold-dark: #D4891C;
+      --gold-light: #FFF3D6;
+      --bg: #0A0E17;
+      --bg-card: #121924;
+      --bg-card-hover: #1A2332;
+      --text: #E8ECF1;
+      --text-dim: #8892A4;
+      --green: #00D68F;
+      --red: #FF4D6A;
+      --blue: #3B82F6;
+      --purple: #A855F7;
+      --border: #1E2A3A;
+      --gradient-gold: linear-gradient(135deg, #F5A623, #D4891C);
+      --gradient-blue: linear-gradient(135deg, #3B82F6, #6366F1);
+      --gradient-green: linear-gradient(135deg, #00D68F, #10B981);
+      --gradient-red: linear-gradient(135deg, #FF4D6A, #EF4444);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Thai', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at 30% 50%, rgba(245,166,35,0.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 70% 50%, rgba(59,130,246,0.06) 0%, transparent 50%);
+      animation: drift 20s ease-in-out infinite;
+    }
+
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-2%, 2%); }
+    }
+
+    .hero-content { position: relative; z-index: 1; max-width: 800px; }
+
+    .hero-icon {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 1.5rem;
+      background: var(--gradient-gold);
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      box-shadow: 0 20px 60px rgba(245,166,35,0.25);
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #F5A623, #FFD700, #F5A623);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero .subtitle {
+      font-size: clamp(1rem, 2.5vw, 1.3rem);
+      color: var(--text-dim);
+      margin-bottom: 2rem;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      animation: bounce 2s infinite;
+    }
+
+    .scroll-hint span {
+      display: block;
+      font-size: 1.5rem;
+      margin-top: 0.3rem;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(8px); }
+    }
+
+    /* Navigation */
+    .toc {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 14, 23, 0.9);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 0;
+      overflow-x: auto;
+    }
+
+    .toc-inner {
+      display: flex;
+      gap: 0.25rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      white-space: nowrap;
+    }
+
+    .toc a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-radius: 8px;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .toc a:hover { color: var(--gold); background: rgba(245,166,35,0.1); }
+    .toc .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: var(--border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+
+    .toc a:hover .step-num { background: var(--gold); color: var(--bg); }
+
+    /* Main Layout */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 6rem;
+    }
+
+    /* Sections */
+    .section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 4rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .section-num {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .section-num.gold { background: var(--gradient-gold); color: #000; }
+    .section-num.blue { background: var(--gradient-blue); color: #fff; }
+    .section-num.green { background: var(--gradient-green); color: #000; }
+    .section-num.red { background: var(--gradient-red); color: #fff; }
+    .section-num.purple { background: linear-gradient(135deg, #A855F7, #7C3AED); color: #fff; }
+
+    .section-title {
+      font-size: clamp(1.3rem, 3vw, 1.8rem);
+      font-weight: 700;
+    }
+
+    .section-subtitle {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      transition: all 0.2s;
+    }
+
+    .card:hover {
+      border-color: rgba(245,166,35,0.3);
+      background: var(--bg-card-hover);
+    }
+
+    .card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card p, .card li {
+      color: var(--text-dim);
+      font-size: 0.95rem;
+      line-height: 1.8;
+    }
+
+    .card ul { padding-left: 1.2rem; }
+    .card li { margin-bottom: 0.3rem; }
+
+    /* Code / Diagram blocks */
+    .diagram {
+      background: #0D1117;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: var(--text-dim);
+    }
+
+    .diagram .highlight { color: var(--gold); font-weight: 600; }
+    .diagram .green { color: var(--green); }
+    .diagram .red { color: var(--red); }
+    .diagram .blue { color: var(--blue); }
+    .diagram .purple { color: var(--purple); }
+    .diagram .dim { color: #4A5568; }
+
+    /* Grid Visual */
+    .grid-visual {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin: 1.5rem 0;
+    }
+
+    .grid-level {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.5rem 1.5rem;
+      width: 100%;
+      max-width: 400px;
+      border-left: 3px solid transparent;
+      transition: all 0.2s;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+
+    .grid-level:hover { background: rgba(255,255,255,0.03); }
+    .grid-level.sell { border-left-color: var(--red); }
+    .grid-level.buy { border-left-color: var(--green); }
+    .grid-level.center {
+      border-left-color: var(--gold);
+      background: rgba(245,166,35,0.08);
+      border-radius: 8px;
+      font-weight: 700;
+      padding: 0.75rem 1.5rem;
+      margin: 0.3rem 0;
+    }
+
+    .grid-level .label {
+      width: 50px;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    .grid-level.sell .label { color: var(--red); }
+    .grid-level.buy .label { color: var(--green); }
+    .grid-level.center .label { color: var(--gold); }
+
+    .grid-level .price { color: var(--text); }
+    .grid-level .bar {
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      opacity: 0.3;
+    }
+
+    .grid-level.sell .bar { background: var(--red); }
+    .grid-level.buy .bar { background: var(--green); }
+
+    /* Indicator meters */
+    .meter-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    .meter {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    .meter-label {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .meter-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    .meter-bar {
+      height: 8px;
+      background: #1E2A3A;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+
+    .meter-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s;
+    }
+
+    .meter-marker {
+      position: absolute;
+      top: -4px;
+      width: 3px;
+      height: 16px;
+      background: var(--text);
+      border-radius: 2px;
+    }
+
+    .meter-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    /* Regime Table */
+    .regime-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    .regime-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      border-left: 4px solid;
+      transition: all 0.2s;
+    }
+
+    .regime-item:hover { background: var(--bg-card-hover); transform: translateY(-2px); }
+
+    .regime-item.up-strong { border-left-color: #00D68F; }
+    .regime-item.up-mild { border-left-color: #4ADE80; }
+    .regime-item.neutral { border-left-color: var(--gold); }
+    .regime-item.down-mild { border-left-color: #FB923C; }
+    .regime-item.down-strong { border-left-color: #FF4D6A; }
+    .regime-item.volatile { border-left-color: var(--purple); }
+
+    .regime-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
+    .regime-action { color: var(--text-dim); font-size: 0.85rem; }
+
+    /* News Shield */
+    .shield-levels {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    .shield-level {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .shield-level:hover { transform: translateY(-2px); }
+
+    .shield-dot {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin: 0 auto 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .shield-level.low .shield-dot { background: rgba(0,214,143,0.15); box-shadow: 0 0 20px rgba(0,214,143,0.1); }
+    .shield-level.medium .shield-dot { background: rgba(245,166,35,0.15); box-shadow: 0 0 20px rgba(245,166,35,0.1); }
+    .shield-level.high .shield-dot { background: rgba(255,77,106,0.15); box-shadow: 0 0 20px rgba(255,77,106,0.1); }
+    .shield-level.critical .shield-dot { background: rgba(120,0,0,0.3); box-shadow: 0 0 20px rgba(255,0,0,0.15); }
+
+    .shield-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.3rem; }
+    .shield-action { font-size: 0.8rem; color: var(--text-dim); }
+
+    /* Risk Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+      margin: 1.5rem 0;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--gold), var(--blue), var(--green), var(--purple));
+      border-radius: 2px;
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 1.5rem;
+      padding: 1.25rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2.35rem;
+      top: 1.5rem;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+      background: var(--bg);
+    }
+
+    .timeline-item:nth-child(2)::before { border-color: var(--blue); }
+    .timeline-item:nth-child(3)::before { border-color: var(--green); }
+    .timeline-item:nth-child(4)::before { border-color: var(--purple); }
+
+    .timeline-period {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.3rem;
+    }
+
+    .timeline-item:nth-child(2) .timeline-period { color: var(--blue); }
+    .timeline-item:nth-child(3) .timeline-period { color: var(--green); }
+    .timeline-item:nth-child(4) .timeline-period { color: var(--purple); }
+
+    .timeline-title { font-weight: 700; margin-bottom: 0.5rem; }
+    .timeline-desc { color: var(--text-dim); font-size: 0.9rem; }
+
+    /* Architecture Flow */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin: 2rem 0;
+    }
+
+    .flow-node {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      text-align: center;
+      width: 100%;
+      max-width: 350px;
+      transition: all 0.2s;
+    }
+
+    .flow-node:hover { border-color: var(--gold); }
+    .flow-node .flow-label { font-weight: 700; margin-bottom: 0.25rem; }
+    .flow-node .flow-desc { font-size: 0.8rem; color: var(--text-dim); }
+
+    .flow-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      padding: 0.4rem 0;
+    }
+
+    .flow-arrow::after {
+      content: '';
+      width: 2px;
+      height: 16px;
+      background: var(--border);
+      margin-top: 0.2rem;
+    }
+
+    /* Warning box */
+    .warning {
+      background: rgba(255,77,106,0.08);
+      border: 1px solid rgba(255,77,106,0.2);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin: 1.5rem 0;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .warning-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .warning-text {
+      font-size: 0.95rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .warning-text span {
+      display: block;
+      font-weight: 400;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      margin-top: 0.3rem;
+    }
+
+    /* Info callout */
+    .callout {
+      background: rgba(59,130,246,0.08);
+      border: 1px solid rgba(59,130,246,0.2);
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .callout.gold {
+      background: rgba(245,166,35,0.08);
+      border-color: rgba(245,166,35,0.2);
+    }
+
+    .callout h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .callout p {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+
+    /* Formula */
+    .formula {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(245,166,35,0.1);
+      border: 1px solid rgba(245,166,35,0.2);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-family: 'SF Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--gold);
+      margin: 0.5rem 0;
+    }
+
+    /* Comparison table */
+    .compare-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    .compare-table th {
+      background: rgba(245,166,35,0.1);
+      color: var(--gold);
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .compare-table th:first-child { border-radius: 10px 0 0 0; }
+    .compare-table th:last-child { border-radius: 0 10px 0 0; }
+
+    .compare-table td {
+      padding: 0.65rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+
+    .compare-table tr:last-child td:first-child { border-radius: 0 0 0 10px; }
+    .compare-table tr:last-child td:last-child { border-radius: 0 0 10px 0; }
+
+    .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer a { color: var(--gold); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .container { padding: 1.25rem 1rem 4rem; }
+      .card { padding: 1.25rem; }
+      .section-header { gap: 0.75rem; }
+      .section-num { width: 40px; height: 40px; font-size: 1rem; border-radius: 12px; }
+      .regime-grid { grid-template-columns: 1fr; }
+      .shield-levels { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .meter-group { grid-template-columns: 1fr; }
+      .toc-inner { padding: 0 0.5rem; }
+      .toc a { padding: 0.4rem 0.6rem; font-size: 0.8rem; }
+    }
+
+    /* Smooth scroll */
+    html { scroll-behavior: smooth; }
+
+    /* Selection */
+    ::selection {
+      background: rgba(245,166,35,0.3);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-icon">Au</div>
+    <h1>Gold Unlock</h1>
+    <p class="subtitle">Grid Trading Bot + AI Regime Detection<br>
+    คู่มือเริ่มต้นจากศูนย์สำหรับผู้เริ่มต้น</p>
+  </div>
+  <div class="scroll-hint">
+    เลื่อนลงเพื่อเริ่มเรียนรู้
+    <span>&darr;</span>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#s1"><span class="step-num">1</span> ทองคำ</a>
+    <a href="#s2"><span class="step-num">2</span> Grid Trading</a>
+    <a href="#s3"><span class="step-num">3</span> Indicators</a>
+    <a href="#s4"><span class="step-num">4</span> AI Regime</a>
+    <a href="#s5"><span class="step-num">5</span> News Shield</a>
+    <a href="#s6"><span class="step-num">6</span> Risk</a>
+    <a href="#s7"><span class="step-num">7</span> Roadmap</a>
+    <a href="#s8"><span class="step-num">8</span> Architecture</a>
+  </div>
+</nav>
+
+<!-- Content -->
+<div class="container">
+
+  <!-- Section 1: Gold -->
+  <section class="section" id="s1">
+    <div class="section-header">
+      <div class="section-num gold">1</div>
+      <div>
+        <div class="section-title">ทองคำ XAU/USD คืออะไร?</div>
+        <div class="section-subtitle">พื้นฐานที่ต้องรู้ก่อนเริ่ม</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>ราคาทองคำวัดยังไง?</h3>
+      <p>ราคาทองคำวัดเป็น <strong>ดอลลาร์ต่อออนซ์ (troy ounce)</strong><br>
+      เช่น <code style="background:#1E2A3A;padding:0.15rem 0.5rem;border-radius:4px;color:var(--gold)">XAU/USD = 2,650.00</code> หมายถึง ทอง 1 ออนซ์ราคา $2,650</p>
+    </div>
+
+    <div class="card">
+      <h3>ซื้อ (Buy) vs ขาย (Sell)</h3>
+      <div class="diagram">
+<span class="green">ราคาขึ้น</span> = ถ้าเปิด <span class="green">Buy</span> ไว้ &rarr; <span class="green">ได้กำไร</span>
+<span class="red">ราคาลง</span>   = ถ้าเปิด <span class="red">Sell</span> ไว้ &rarr; <span class="green">ได้กำไร</span>
+      </div>
+      <p>ในตลาด Forex/Gold สามารถทำกำไรได้ทั้งขาขึ้นและขาลง</p>
+    </div>
+
+    <div class="card">
+      <h3>Lot Size = ขนาดการเทรด</h3>
+      <table class="compare-table">
+        <tr>
+          <th>Lot Size</th>
+          <th>ทองขยับ $1</th>
+          <th>ระดับความเสี่ยง</th>
+        </tr>
+        <tr>
+          <td><code>0.01</code></td>
+          <td>ได้/เสีย $0.01</td>
+          <td style="color:var(--green)">ต่ำมาก</td>
+        </tr>
+        <tr>
+          <td><code>0.10</code></td>
+          <td>ได้/เสีย $0.10</td>
+          <td style="color:var(--gold)">ปานกลาง</td>
+        </tr>
+        <tr>
+          <td><code>1.00</code></td>
+          <td>ได้/เสีย $1.00</td>
+          <td style="color:var(--red)">สูง</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>อะไรทำให้ราคาทองขยับ?</h3>
+      <ul>
+        <li><strong>ดอลลาร์อ่อน</strong> &rarr; ทองขึ้น</li>
+        <li><strong>สงคราม / วิกฤต</strong> &rarr; ทองขึ้น (safe haven)</li>
+        <li><strong>Fed ขึ้นดอกเบี้ย</strong> &rarr; ทองลง</li>
+        <li><strong>ข่าว NFP, CPI, FOMC</strong> &rarr; ทองขยับแรงมาก</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Section 2: Grid Trading -->
+  <section class="section" id="s2">
+    <div class="section-header">
+      <div class="section-num blue">2</div>
+      <div>
+        <div class="section-title">Grid Trading คืออะไร?</div>
+        <div class="section-subtitle">หัวใจของระบบ — วางกับดักราคาเป็นชั้นๆ</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>แนวคิดหลัก</h3>
+      <p>Grid Trading คือการวาง orders ซื้อ/ขายเป็นชั้นๆ รอบราคาปัจจุบัน เหมือน "ตาข่ายดักราคา"<br>
+      เมื่อราคาแกว่งขึ้นลง bot จะเปิดและปิด orders ทำกำไรจากการแกว่งทุกรอบ</p>
+    </div>
+
+    <!-- Grid Visual -->
+    <div class="card">
+      <h3>Grid Levels หน้าตาเป็นยังไง</h3>
+      <div class="grid-visual">
+        <div class="grid-level sell">
+          <span class="label">SELL</span>
+          <span class="price">2,680</span>
+          <span class="bar"></span>
+          <span style="font-size:0.8rem;color:var(--text-dim)">ชั้น 3</span>
+        </div>
+        <div class="grid-level sell">
+          <span class="label">SELL</span>
+          <span class="price">2,670</span>
+          <span class="bar"></span>
+          <span style="font-size:0.8rem;color:var(--text-dim)">ชั้น 2</span>
+        </div>
+        <div class="grid-level sell">
+          <span class="label">SELL</span>
+          <span class="price">2,660</span>
+          <span class="bar"></span>
+          <span style="font-size:0.8rem;color:var(--text-dim)">ชั้น 1</span>
+        </div>
+        <div class="grid-level center">
+          <span class="label">NOW</span>
+          <span class="price">2,650 &mdash; ราคาปัจจุบัน</span>
+        </div>
+        <div class="grid-level buy">
+          <span class="label">BUY</span>
+          <span class="price">2,640</span>
+          <span class="bar"></span>
+          <span style="font-size:0.8rem;color:var(--text-dim)">ชั้น 1</span>
+        </div>
+        <div class="grid-level buy">
+          <span class="label">BUY</span>
+          <span class="price">2,630</span>
+          <span class="bar"></span>
+          <span style="font-size:0.8rem;color:var(--text-dim)">ชั้น 2</span>
+        </div>
+        <div class="grid-level buy">
+          <span class="label">BUY</span>
+          <span class="price">2,620</span>
+          <span class="bar"></span>
+          <span style="font-size:0.8rem;color:var(--text-dim)">ชั้น 3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>ทำงานยังไง?</h3>
+      <div class="diagram">
+ราคาลงมาถึงชั้น <span class="green">Buy 2,640</span>
+  &rarr; bot ซื้อ &rarr; รอราคากลับขึ้น &rarr; ปิดทำกำไร &#10004;
+
+ราคาขึ้นไปถึงชั้น <span class="red">Sell 2,660</span>
+  &rarr; bot ขาย &rarr; รอราคากลับลง &rarr; ปิดทำกำไร &#10004;
+
+ตลาด<span class="highlight">แกว่งไปมา</span> = bot กินกำไรทุกรอบ
+      </div>
+    </div>
+
+    <div class="callout gold">
+      <h4>Grid Spacing คำนวณจากอะไร?</h4>
+      <div class="formula">Grid Spacing = ATR &times; ATR_MULTIPLIER</div>
+      <p style="margin-top:0.5rem">ATR คือค่าความผันผวน ยิ่งตลาดผันผวนมาก grid ยิ่งกว้าง (ปลอดภัยกว่า)</p>
+    </div>
+
+    <div class="warning">
+      <div class="warning-icon">&#9888;</div>
+      <div class="warning-text">
+        จุดอ่อนของ Grid Trading
+        <span>ถ้าราคาวิ่งทางเดียวไม่กลับ (เช่น ทองร่วง $100) &rarr; ขาดทุนหนัก<br>
+        นี่คือเหตุผลที่ต้องมี <strong>AI Regime Detection</strong> + <strong>News Shield</strong></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 3: Indicators -->
+  <section class="section" id="s3">
+    <div class="section-header">
+      <div class="section-num green">3</div>
+      <div>
+        <div class="section-title">Indicators ที่ Bot ใช้</div>
+        <div class="section-subtitle">เครื่องมือวัดสภาพตลาด 3 ตัวหลัก</div>
+      </div>
+    </div>
+
+    <div class="meter-group">
+      <!-- RSI -->
+      <div class="meter">
+        <div class="meter-label">Momentum</div>
+        <div class="meter-name">RSI (Relative Strength Index)</div>
+        <div class="meter-bar">
+          <div class="meter-fill" style="width:100%;background:linear-gradient(to right, var(--green) 0%, var(--green) 30%, #666 30%, #666 70%, var(--red) 70%, var(--red) 100%)"></div>
+          <div class="meter-marker" style="left:30%"></div>
+          <div class="meter-marker" style="left:70%"></div>
+        </div>
+        <div class="meter-labels">
+          <span>0 &mdash; Oversold</span>
+          <span>30</span>
+          <span>50</span>
+          <span>70</span>
+          <span>100 &mdash; Overbought</span>
+        </div>
+        <p style="margin-top:0.75rem;font-size:0.85rem;color:var(--text-dim)">
+          วัดว่าซื้อ/ขายมากเกินไปยัง<br>
+          &lt; 30 = Oversold (น่าซื้อ) | &gt; 70 = Overbought (น่าขาย)
+        </p>
+      </div>
+
+      <!-- ATR -->
+      <div class="meter">
+        <div class="meter-label">Volatility</div>
+        <div class="meter-name">ATR (Average True Range)</div>
+        <div class="meter-bar">
+          <div class="meter-fill" style="width:100%;background:linear-gradient(to right, var(--green), var(--gold), var(--red))"></div>
+        </div>
+        <div class="meter-labels">
+          <span>ต่ำ &mdash; ตลาดสงบ</span>
+          <span>สูง &mdash; ตลาดผันผวน</span>
+        </div>
+        <p style="margin-top:0.75rem;font-size:0.85rem;color:var(--text-dim)">
+          วัดความผันผวนของราคา<br>
+          ATR ต่ำ = grid แคบ, เทรดถี่ | ATR สูง = grid กว้าง, ปลอดภัยกว่า
+        </p>
+      </div>
+    </div>
+
+    <!-- EMA -->
+    <div class="card">
+      <h3>EMA 20/50 (Exponential Moving Average)</h3>
+      <p style="margin-bottom:0.75rem">วัดทิศทางแนวโน้มของราคา โดยเปรียบเทียบค่าเฉลี่ย 2 เส้น</p>
+      <div class="diagram">
+<span class="green">EMA20 อยู่บน EMA50</span>   = ขาขึ้น (Uptrend)    &rarr; เน้น Buy
+<span class="red">EMA20 อยู่ล่าง EMA50</span>  = ขาลง (Downtrend)   &rarr; เน้น Sell
+<span class="highlight">EMA20 &asymp; EMA50</span>         = Sideways (Neutral)  &rarr; Buy/Sell เท่ากัน
+      </div>
+      <p style="margin-top:0.75rem;font-size:0.85rem;color:var(--text-dim)">
+        <strong>EMA20</strong> = ค่าเฉลี่ย 20 แท่ง (ไวต่อราคา)<br>
+        <strong>EMA50</strong> = ค่าเฉลี่ย 50 แท่ง (ช้ากว่า แต่แม่นกว่า)
+      </p>
+    </div>
+  </section>
+
+  <!-- Section 4: AI Regime -->
+  <section class="section" id="s4">
+    <div class="section-header">
+      <div class="section-num gold">4</div>
+      <div>
+        <div class="section-title">AI Regime Detection</div>
+        <div class="section-subtitle">Claude Code cowork วิเคราะห์ตลาดและปรับ config อัตโนมัติ</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>AI ทำหน้าที่อะไร?</h3>
+      <p>Claude Code cowork อ่าน indicators ทั้ง 3 ตัว (RSI, ATR, EMA) แล้วจำแนกสภาวะตลาดเป็น 6 ประเภท จากนั้นปรับ config ของ grid ให้เหมาะกับสถานการณ์</p>
+    </div>
+
+    <div class="regime-grid">
+      <div class="regime-item up-strong">
+        <div class="regime-name">Strong Uptrend</div>
+        <div class="regime-action">RSI &gt; 65 + EMA20 &gt; EMA50<br>เปิดแต่ Buy, lot &times; 1.5</div>
+      </div>
+      <div class="regime-item up-mild">
+        <div class="regime-name">Mild Uptrend</div>
+        <div class="regime-action">RSI 55-65 + EMA20 &gt; EMA50<br>Buy เยอะ, Sell น้อย</div>
+      </div>
+      <div class="regime-item neutral">
+        <div class="regime-name">Neutral</div>
+        <div class="regime-action">RSI 40-60 + EMA ใกล้กัน<br>Buy = Sell เท่ากัน</div>
+      </div>
+      <div class="regime-item down-mild">
+        <div class="regime-name">Mild Downtrend</div>
+        <div class="regime-action">RSI 35-45 + EMA20 &lt; EMA50<br>Sell เยอะ, Buy น้อย</div>
+      </div>
+      <div class="regime-item down-strong">
+        <div class="regime-name">Strong Downtrend</div>
+        <div class="regime-action">RSI &lt; 35 + EMA20 &lt; EMA50<br>เปิดแต่ Sell, lot &times; 1.5</div>
+      </div>
+      <div class="regime-item volatile">
+        <div class="regime-name">High Volatility</div>
+        <div class="regime-action">ATR ratio &gt; 2.0<br>ขยาย spacing, lot &times; 0.5</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h4>ทำไม AI ถึงสำคัญ?</h4>
+      <p>ถ้าทองเป็น uptrend แรง แต่ bot เปิด Sell grid เต็ม &rarr; ขาดทุนหนักแน่นอน<br>
+      AI ช่วยบอกว่า <em>"ตอนนี้ขาขึ้น อย่าเปิด Sell!"</em> และปรับ grid ให้อัตโนมัติ</p>
+    </div>
+
+    <div class="callout gold">
+      <h4>ไม่ต้องจ่ายค่า AI API</h4>
+      <p>ระบบนี้ใช้ Claude Code cowork ที่รวมอยู่ใน subscription ที่สมัครอยู่แล้ว ไม่มีค่าใช้จ่ายเพิ่ม</p>
+    </div>
+  </section>
+
+  <!-- Section 5: News Shield -->
+  <section class="section" id="s5">
+    <div class="section-header">
+      <div class="section-num red">5</div>
+      <div>
+        <div class="section-title">News Shield</div>
+        <div class="section-subtitle">ป้องกัน Grid Blow Up ช่วงข่าวแรง</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>ทำไมต้องมี?</h3>
+      <div class="diagram">
+<span class="green">ปกติ:</span>     2,650 &rarr; 2,652 &rarr; 2,648 &rarr; 2,651  <span class="dim">(แกว่ง $2-4, bot ชอบ)</span>
+<span class="red">ช่วงข่าว:</span>  2,650 &rarr; 2,620 &rarr; 2,590          <span class="dim">(ร่วง $60, bot ตาย)</span>
+      </div>
+      <p style="margin-top:0.5rem">ข่าวสำคัญทำให้ทองกระโดด $20-50 ในไม่กี่นาที Grid ที่วางไว้จะโดนทะลุหมด</p>
+    </div>
+
+    <div class="shield-levels">
+      <div class="shield-level low">
+        <div class="shield-dot">&#x1F7E2;</div>
+        <div class="shield-name">Low</div>
+        <div class="shield-action">เทรดปกติ<br>ไม่มีข่าวกระทบ</div>
+      </div>
+      <div class="shield-level medium">
+        <div class="shield-dot">&#x1F7E1;</div>
+        <div class="shield-name">Medium</div>
+        <div class="shield-action">ลด lot 50%<br>ขยาย spacing 1.5x</div>
+      </div>
+      <div class="shield-level high">
+        <div class="shield-dot">&#x1F534;</div>
+        <div class="shield-name">High</div>
+        <div class="shield-action">หยุดเปิด order ใหม่<br>รอ 30 นาที</div>
+      </div>
+      <div class="shield-level critical">
+        <div class="shield-dot">&#x26AB;</div>
+        <div class="shield-name">Critical</div>
+        <div class="shield-action">ปิด positions ทั้งหมด<br>Emergency mode</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>ข่าวสำคัญที่ต้องระวัง</h3>
+      <table class="compare-table">
+        <tr>
+          <th>ข่าว</th>
+          <th>ช่วงเวลา (UTC)</th>
+          <th>Impact</th>
+        </tr>
+        <tr>
+          <td><strong>NFP</strong> (Non-Farm Payrolls)</td>
+          <td>ศุกร์แรกของเดือน 12:30</td>
+          <td style="color:var(--red)">High</td>
+        </tr>
+        <tr>
+          <td><strong>CPI</strong> (Consumer Price Index)</td>
+          <td>~10-14 ของเดือน 12:30</td>
+          <td style="color:var(--red)">High</td>
+        </tr>
+        <tr>
+          <td><strong>FOMC</strong> (Fed Rate Decision)</td>
+          <td>~กลางเดือน (8 ครั้ง/ปี) 18:00</td>
+          <td style="color:var(--red)">High</td>
+        </tr>
+        <tr>
+          <td><strong>PPI</strong> (Producer Price Index)</td>
+          <td>~11-15 ของเดือน 12:30</td>
+          <td style="color:var(--gold)">Medium</td>
+        </tr>
+        <tr>
+          <td><strong>Jobless Claims</strong></td>
+          <td>ทุกวันพฤหัส 12:30</td>
+          <td style="color:var(--gold)">Medium</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- Section 6: Risk -->
+  <section class="section" id="s6">
+    <div class="section-header">
+      <div class="section-num purple">6</div>
+      <div>
+        <div class="section-title">Risk Management</div>
+        <div class="section-subtitle">คำศัพท์สำคัญ + กฎของ bot</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>คำศัพท์ที่ต้องรู้</h3>
+      <table class="compare-table">
+        <tr><th>คำ</th><th>ความหมาย</th><th>ตัวอย่าง</th></tr>
+        <tr>
+          <td><strong>Balance</strong></td>
+          <td>เงินในบัญชี</td>
+          <td>$1,000</td>
+        </tr>
+        <tr>
+          <td><strong>Equity</strong></td>
+          <td>Balance + กำไร/ขาดทุนที่ยังเปิดอยู่</td>
+          <td>$1,000 + (-$30) = $970</td>
+        </tr>
+        <tr>
+          <td><strong>Drawdown</strong></td>
+          <td>เงินที่หายจากจุดสูงสุด</td>
+          <td>จาก $1,000 เหลือ $920 = DD 8%</td>
+        </tr>
+        <tr>
+          <td><strong>TP</strong></td>
+          <td>Take Profit — จุดทำกำไร</td>
+          <td>ซื้อที่ 2,640 TP ที่ 2,660</td>
+        </tr>
+        <tr>
+          <td><strong>SL</strong></td>
+          <td>Stop Loss — จุดตัดขาดทุน</td>
+          <td>ซื้อที่ 2,640 SL ที่ 2,610</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--red)">10%</div>
+        <div class="stat-label">Max Drawdown<br>ถึงเมื่อไหร่ปิดทุกอย่าง</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--blue)">12</div>
+        <div class="stat-label">Max Positions<br>ไม่เปิดเกินนี้</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--green)">0.01</div>
+        <div class="stat-label">Base Lot<br>เสี่ยงน้อยสุด</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--gold)">6</div>
+        <div class="stat-label">Grid Levels<br>ต่อฝั่ง (Buy/Sell)</div>
+      </div>
+    </div>
+
+    <div class="warning">
+      <div class="warning-icon">&#9888;</div>
+      <div class="warning-text">
+        กฎเหล็ก: ห้ามใช้เงินจริง จนกว่า demo จะกำไรอย่างน้อย 3 เดือนติด
+        <span>Grid Trading มีความเสี่ยงสูง โดยเฉพาะช่วง trend แรง เริ่มจาก demo เสมอ</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 7: Learning Roadmap -->
+  <section class="section" id="s7">
+    <div class="section-header">
+      <div class="section-num blue">7</div>
+      <div>
+        <div class="section-title">Learning Roadmap</div>
+        <div class="section-subtitle">แผนการเรียนรู้ทีละขั้น</div>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-period">สัปดาห์ 1-2</div>
+        <div class="timeline-title">ดูราคาทอง + เทรดด้วยมือ</div>
+        <div class="timeline-desc">
+          เปิด MT5 demo account ดูราคาทองเคลื่อนที่ ลองเปิด Buy/Sell ด้วยมือ เข้าใจ lot, TP, SL
+          ดูว่าราคาแกว่งแค่ไหนในแต่ละวัน
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-period">สัปดาห์ 3-4</div>
+        <div class="timeline-title">รัน Bot + ดู Dashboard</div>
+        <div class="timeline-desc">
+          รัน bot บน demo ด้วย config default ดู dashboard สังเกตว่า grid ทำงานยังไง
+          ราคาไปถึง level ไหนแล้ว bot ทำอะไร
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-period">เดือน 2</div>
+        <div class="timeline-title">เข้าใจ Indicators + AI</div>
+        <div class="timeline-desc">
+          เริ่มเข้าใจ RSI, ATR, EMA สังเกตว่า AI regime เปลี่ยนตอนไหน ทำไม
+          เปรียบเทียบว่า AI ปรับ config แล้ว performance ดีขึ้นไหม
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-period">เดือน 3+</div>
+        <div class="timeline-title">ปรับ Config + ประเมินผล</div>
+        <div class="timeline-desc">
+          ลองปรับ grid levels, ATR multiplier, lot size เข้าใจว่าแต่ละ parameter กระทบ performance ยังไง
+          ถ้า demo กำไร 3 เดือนติด &rarr; ค่อยพิจารณาเงินจริง (lot เล็กสุดเท่านั้น)
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 8: Architecture -->
+  <section class="section" id="s8">
+    <div class="section-header">
+      <div class="section-num gold">8</div>
+      <div>
+        <div class="section-title">Architecture Overview</div>
+        <div class="section-subtitle">ระบบทำงานร่วมกันยังไง</div>
+      </div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-node">
+        <div class="flow-label">ราคาทอง (XAU/USD)</div>
+        <div class="flow-desc">ราคา real-time จากตลาด</div>
+      </div>
+      <div class="flow-arrow">&darr;</div>
+      <div class="flow-node">
+        <div class="flow-label">MT5 &rarr; MetaAPI Cloud</div>
+        <div class="flow-desc">รับราคา + ส่ง orders</div>
+      </div>
+      <div class="flow-arrow">&darr;</div>
+      <div class="flow-node">
+        <div class="flow-label">Node.js Backend</div>
+        <div class="flow-desc">คำนวณ Grid + เขียน market_data.json</div>
+      </div>
+      <div class="flow-arrow">market_data.json &darr;</div>
+      <div class="flow-node" style="border-color:var(--gold)">
+        <div class="flow-label" style="color:var(--gold)">Claude Code Cowork (AI Brain)</div>
+        <div class="flow-desc">วิเคราะห์ regime + เช็คข่าว + เขียน ai_config.json</div>
+      </div>
+      <div class="flow-arrow">ai_config.json &darr;</div>
+      <div class="flow-node">
+        <div class="flow-label">Backend อ่าน config &rarr; ปรับ Grid</div>
+        <div class="flow-desc">ส่ง Buy/Sell orders กลับไป MT5</div>
+      </div>
+      <div class="flow-arrow">&darr;</div>
+      <div class="flow-node">
+        <div class="flow-label">Angular Dashboard</div>
+        <div class="flow-desc">แสดง performance, grid levels, AI status</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>File-based Communication</h3>
+      <table class="compare-table">
+        <tr><th>File</th><th>เขียนโดย</th><th>อ่านโดย</th></tr>
+        <tr>
+          <td><code>logs/market_data.json</code></td>
+          <td>Backend</td>
+          <td>Cowork</td>
+        </tr>
+        <tr>
+          <td><code>ai_config.json</code></td>
+          <td>Cowork</td>
+          <td>Backend</td>
+        </tr>
+        <tr>
+          <td><code>logs/performance.json</code></td>
+          <td>Backend</td>
+          <td>Cowork</td>
+        </tr>
+        <tr>
+          <td><code>logs/news_status.json</code></td>
+          <td>Backend</td>
+          <td>Cowork</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="callout gold">
+      <h4>ไม่มีค่า API เพิ่ม</h4>
+      <p>AI ทำงานผ่าน Claude Code cowork โดยใช้ subscription ที่สมัครอยู่แล้ว<br>
+      ต้องสมัครแค่ 2 อย่าง: <strong>MetaAPI Cloud</strong> (ฟรี) + <strong>MT5 Demo Account</strong> (ฟรี)</p>
+    </div>
+  </section>
+
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <p><strong>Gold Unlock</strong> &mdash; Grid Trading Bot + AI Regime Detection</p>
+  <p style="margin-top:0.5rem">Built with Claude Code Cowork &bull; No extra API costs</p>
+</div>
+
+</body>
+</html>
