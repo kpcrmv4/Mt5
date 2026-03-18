@@ -1,41 +1,50 @@
-const Anthropic = require('@anthropic-ai/sdk');
+/**
+ * AI Regime Service — File-based communication with Claude Code cowork
+ *
+ * Flow:
+ * 1. Backend writes market data to logs/market_data.json (every cycle)
+ * 2. Claude Code cowork reads it, analyzes, writes ai_config.json
+ * 3. Backend reads ai_config.json and applies regime/config changes
+ *
+ * No API key needed — uses Claude Code subscription via cowork mode
+ */
 const fs = require('fs');
 const path = require('path');
 const logger = require('../utils/logger');
 const config = require('../../config/trading');
 const gridService = require('./grid.service');
 
-const REPORTS_DIR = path.join(__dirname, '../../../ai_reports');
+const DATA_DIR = path.join(__dirname, '../../../logs');
+const CONFIG_DIR = path.join(__dirname, '../../../');
+const MARKET_DATA_FILE = path.join(DATA_DIR, 'market_data.json');
+const AI_CONFIG_FILE = path.join(CONFIG_DIR, 'ai_config.json');
+const MT5_CONFIG_FILE = path.join(__dirname, '../../../mt5-ea/gold_unlock_config.json');
 
 class AiRegimeService {
   constructor() {
-    this.client = null;
     this.lastRegime = null;
     this.lastAnalysis = null;
     this.intervalHandle = null;
+    this.lastConfigMtime = 0;
   }
 
   init() {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      logger.warn('ANTHROPIC_API_KEY not set — AI regime detection disabled');
-      return;
-    }
-    this.client = new Anthropic();
-    logger.info('AI Regime service initialized');
+    logger.info('AI Regime service initialized (cowork file-based mode)');
   }
 
   /**
-   * Start periodic analysis
+   * Start periodic file watching
    */
   start() {
-    if (!this.client) return;
-    const intervalMs = config.AI_INTERVAL_MINUTES * 60 * 1000;
-    this.intervalHandle = setInterval(() => this.analyze(), intervalMs);
-    logger.info(
-      `AI Regime analysis every ${config.AI_INTERVAL_MINUTES} minutes`
-    );
-    // Run first analysis immediately
-    this.analyze();
+    // Write market data every cycle for cowork to read
+    // Read ai_config.json for cowork's decisions
+    const intervalMs = 10 * 1000; // check every 10 seconds
+    this.intervalHandle = setInterval(() => {
+      this._writeMarketData();
+      this._readAiConfig();
+    }, intervalMs);
+    logger.info('AI Regime: watching for cowork config changes');
+    this._writeMarketData();
   }
 
   stop() {
@@ -46,230 +55,137 @@ class AiRegimeService {
   }
 
   /**
-   * Run AI regime analysis
+   * Write current market data for Claude Code cowork to analyze
    */
-  async analyze() {
+  _writeMarketData() {
     try {
       const gridStatus = gridService.getStatus();
-      if (!gridStatus.grid || !gridStatus.grid.indicators) {
-        logger.info('Skipping AI analysis — no indicator data yet');
-        return null;
+      const indicators = gridStatus.grid?.indicators || null;
+
+      const data = {
+        timestamp: new Date().toISOString(),
+        symbol: config.SYMBOL,
+        indicators: indicators,
+        currentConfig: {
+          ATR_MULTIPLIER: config.ATR_MULTIPLIER,
+          GRID_LEVELS: config.GRID_LEVELS,
+          BASE_LOT: config.BASE_LOT,
+          MAX_POSITIONS: config.MAX_POSITIONS,
+          FILTER_RSI_ENABLED: config.FILTER_RSI_ENABLED,
+          FILTER_EMA_ENABLED: config.FILTER_EMA_ENABLED,
+        },
+        gridStatus: {
+          running: gridStatus.running,
+          regime: gridStatus.regime,
+          newsShieldActive: gridStatus.newsShieldActive,
+          spacing: gridStatus.grid?.spacing || 0,
+          buyLevels: gridStatus.grid?.buyLevels || [],
+          sellLevels: gridStatus.grid?.sellLevels || [],
+        },
+        performance: require('../models/trade.model').performance,
+      };
+
+      fs.writeFileSync(MARKET_DATA_FILE, JSON.stringify(data, null, 2));
+    } catch (error) {
+      logger.error(`Write market data failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Read AI config written by Claude Code cowork
+   * Cowork writes to ai_config.json with regime and config changes
+   */
+  _readAiConfig() {
+    try {
+      if (!fs.existsSync(AI_CONFIG_FILE)) return;
+
+      const stat = fs.statSync(AI_CONFIG_FILE);
+      const mtime = stat.mtimeMs;
+
+      // Only process if file was modified since last read
+      if (mtime <= this.lastConfigMtime) return;
+      this.lastConfigMtime = mtime;
+
+      const content = fs.readFileSync(AI_CONFIG_FILE, 'utf8');
+      const aiConfig = JSON.parse(content);
+
+      // Apply regime
+      if (aiConfig.regime) {
+        gridService.setRegime(aiConfig.regime);
+        this.lastRegime = aiConfig.regime;
       }
 
-      const indicators = gridStatus.grid.indicators;
-      const prompt = this._buildPrompt(indicators, gridStatus);
-
-      const response = await this.client.messages.create({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1024,
-        messages: [{ role: 'user', content: prompt }],
-      });
-
-      const text = response.content[0].text;
-      const analysis = this._parseResponse(text, indicators);
-
-      // Apply regime to grid service
-      if (analysis.regime) {
-        gridService.setRegime(analysis.regime);
+      // Apply news shield
+      if (aiConfig.news_shield_active != null) {
+        gridService.setNewsShield(aiConfig.news_shield_active);
       }
 
       // Apply config changes
-      if (analysis.configChanges) {
-        this._applyConfigChanges(analysis.configChanges);
+      const changes = [];
+      if (aiConfig.atr_multiplier != null && aiConfig.atr_multiplier !== config.ATR_MULTIPLIER) {
+        config.ATR_MULTIPLIER = aiConfig.atr_multiplier;
+        changes.push(`ATR_MULTIPLIER → ${aiConfig.atr_multiplier}`);
+      }
+      if (aiConfig.grid_levels != null && aiConfig.grid_levels !== config.GRID_LEVELS) {
+        config.GRID_LEVELS = aiConfig.grid_levels;
+        changes.push(`GRID_LEVELS → ${aiConfig.grid_levels}`);
+      }
+      if (aiConfig.base_lot != null && aiConfig.base_lot !== config.BASE_LOT) {
+        config.BASE_LOT = aiConfig.base_lot;
+        changes.push(`BASE_LOT → ${aiConfig.base_lot}`);
+      }
+      if (aiConfig.filter_rsi != null) {
+        config.FILTER_RSI_ENABLED = aiConfig.filter_rsi;
+        changes.push(`FILTER_RSI → ${aiConfig.filter_rsi}`);
+      }
+      if (aiConfig.filter_ema != null) {
+        config.FILTER_EMA_ENABLED = aiConfig.filter_ema;
+        changes.push(`FILTER_EMA → ${aiConfig.filter_ema}`);
       }
 
-      this.lastRegime = analysis.regime;
-      this.lastAnalysis = analysis;
+      if (changes.length > 0) {
+        logger.info(`Cowork config applied: ${changes.join(', ')}`);
+      }
 
-      // Write report for Claude Code cowork to read
-      this._writeReport(analysis, indicators);
+      // Store analysis
+      this.lastAnalysis = {
+        regime: aiConfig.regime || this.lastRegime || 'Neutral',
+        confidence: aiConfig.confidence || 0,
+        trend: aiConfig.trend || 'sideways',
+        reasoning: aiConfig.reasoning || '',
+        riskLevel: aiConfig.risk_level || 'medium',
+        timestamp: aiConfig.timestamp || new Date().toISOString(),
+      };
 
-      // Write config file for MT5 EA to read
-      this._writeMt5Config(analysis);
+      // Also write to MT5 EA config file
+      this._writeMt5Config(aiConfig);
 
       logger.info(
-        `AI Analysis | Regime: ${analysis.regime} | Confidence: ${analysis.confidence}`
+        `Cowork AI | Regime: ${this.lastAnalysis.regime} | Risk: ${this.lastAnalysis.riskLevel}`
       );
-
-      return analysis;
     } catch (error) {
-      logger.error(`AI analysis failed: ${error.message}`);
-      return null;
-    }
-  }
-
-  _buildPrompt(indicators, gridStatus) {
-    return `You are a gold (XAU/USD) market regime analyst for an automated grid trading bot.
-
-Analyze the following market data and classify the current regime.
-
-## Current Market Data
-- Price: $${indicators.price}
-- RSI(14): ${indicators.rsi}
-- ATR(14): $${indicators.atr} (ratio vs 20-avg: ${indicators.atrRatio})
-- EMA(20): $${indicators.emaFast}
-- EMA(50): $${indicators.emaSlow}
-- EMA Cross: ${indicators.emaCross}
-- Current Grid Spacing: $${gridStatus.grid.spacing}
-- Open Positions: ${gridStatus.grid.indicators ? 'active' : 0}
-
-## Classify into exactly ONE regime:
-1. Strong Uptrend
-2. Mild Uptrend
-3. Neutral
-4. Mild Downtrend
-5. Strong Downtrend
-6. High Volatility
-
-## Respond in this exact JSON format:
-{
-  "regime": "<regime name>",
-  "confidence": <0.0-1.0>,
-  "trend": "<up/down/sideways>",
-  "reasoning": "<1-2 sentences>",
-  "config_changes": {
-    "atr_multiplier": <number or null>,
-    "grid_levels": <number or null>,
-    "base_lot": <number or null>,
-    "filter_rsi": <boolean or null>,
-    "filter_ema": <boolean or null>
-  },
-  "risk_level": "<low/medium/high/critical>"
-}
-
-Only suggest config_changes if the current values need adjustment. Use null for no change.`;
-  }
-
-  _parseResponse(text, indicators) {
-    try {
-      // Extract JSON from response
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        return {
-          regime: 'Neutral',
-          confidence: 0,
-          reasoning: 'Failed to parse AI response',
-        };
+      // File may not exist yet or be in the middle of being written
+      if (error.code !== 'ENOENT') {
+        logger.error(`Read AI config failed: ${error.message}`);
       }
-
-      const parsed = JSON.parse(jsonMatch[0]);
-      return {
-        regime: parsed.regime || 'Neutral',
-        confidence: parsed.confidence || 0,
-        trend: parsed.trend || 'sideways',
-        reasoning: parsed.reasoning || '',
-        configChanges: parsed.config_changes || {},
-        riskLevel: parsed.risk_level || 'medium',
-        timestamp: new Date().toISOString(),
-      };
-    } catch (error) {
-      logger.error(`Failed to parse AI response: ${error.message}`);
-      return {
-        regime: 'Neutral',
-        confidence: 0,
-        reasoning: 'Parse error',
-      };
     }
   }
 
-  _applyConfigChanges(changes) {
-    const applied = [];
-    if (changes.atr_multiplier != null) {
-      config.ATR_MULTIPLIER = changes.atr_multiplier;
-      applied.push(`ATR_MULTIPLIER → ${changes.atr_multiplier}`);
-    }
-    if (changes.grid_levels != null) {
-      config.GRID_LEVELS = changes.grid_levels;
-      applied.push(`GRID_LEVELS → ${changes.grid_levels}`);
-    }
-    if (changes.base_lot != null) {
-      config.BASE_LOT = changes.base_lot;
-      applied.push(`BASE_LOT → ${changes.base_lot}`);
-    }
-    if (changes.filter_rsi != null) {
-      config.FILTER_RSI_ENABLED = changes.filter_rsi;
-      applied.push(`FILTER_RSI → ${changes.filter_rsi}`);
-    }
-    if (changes.filter_ema != null) {
-      config.FILTER_EMA_ENABLED = changes.filter_ema;
-      applied.push(`FILTER_EMA → ${changes.filter_ema}`);
-    }
-
-    if (applied.length > 0) {
-      logger.info(`Config changes applied: ${applied.join(', ')}`);
-    }
-  }
-
-  _writeReport(analysis, indicators) {
-    try {
-      const now = new Date();
-      const filename = `${now.toISOString().slice(0, 16).replace(/[T:]/g, '-')}.md`;
-      const filepath = path.join(REPORTS_DIR, filename);
-
-      const content = `# AI Regime Report - ${now.toISOString()}
-
-## Market State
-- **Regime**: ${analysis.regime}
-- **Confidence**: ${Math.round(analysis.confidence * 100)}%
-- **Trend**: ${analysis.trend}
-- **Risk Level**: ${analysis.riskLevel}
-
-## Indicators
-- RSI(14): ${indicators.rsi}
-- ATR(14): $${indicators.atr} (ratio: ${indicators.atrRatio})
-- EMA(20): $${indicators.emaFast}
-- EMA(50): $${indicators.emaSlow}
-- EMA Cross: ${indicators.emaCross}
-- Price: $${indicators.price}
-
-## AI Reasoning
-${analysis.reasoning}
-
-## Config Changes Applied
-${
-  analysis.configChanges
-    ? Object.entries(analysis.configChanges)
-        .filter(([, v]) => v != null)
-        .map(([k, v]) => `- ${k}: ${v}`)
-        .join('\n') || '- No changes'
-    : '- No changes'
-}
-
-## Current Config
-- ATR_MULTIPLIER: ${config.ATR_MULTIPLIER}
-- GRID_LEVELS: ${config.GRID_LEVELS}
-- BASE_LOT: ${config.BASE_LOT}
-- FILTER_RSI: ${config.FILTER_RSI_ENABLED}
-- FILTER_EMA: ${config.FILTER_EMA_ENABLED}
-`;
-
-      fs.writeFileSync(filepath, content);
-      logger.info(`Report written: ${filename}`);
-    } catch (error) {
-      logger.error(`Write report failed: ${error.message}`);
-    }
-  }
-
-  _writeMt5Config(analysis) {
+  _writeMt5Config(aiConfig) {
     try {
       const mt5Config = {
-        regime: analysis.regime,
+        regime: aiConfig.regime || 'Neutral',
         atr_multiplier: config.ATR_MULTIPLIER,
         grid_levels: config.GRID_LEVELS,
         base_lot: config.BASE_LOT,
         filter_rsi: config.FILTER_RSI_ENABLED,
         filter_ema: config.FILTER_EMA_ENABLED,
         news_shield_active: gridService.newsShieldActive,
-        risk_level: analysis.riskLevel,
+        risk_level: aiConfig.risk_level || 'medium',
         timestamp: new Date().toISOString(),
       };
 
-      // Write to MT5 common files directory
-      const filepath = path.join(
-        __dirname,
-        '../../../mt5-ea/gold_unlock_config.json'
-      );
-      fs.writeFileSync(filepath, JSON.stringify(mt5Config, null, 2));
+      fs.writeFileSync(MT5_CONFIG_FILE, JSON.stringify(mt5Config, null, 2));
     } catch (error) {
       logger.error(`Write MT5 config failed: ${error.message}`);
     }

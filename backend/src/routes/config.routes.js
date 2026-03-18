@@ -68,10 +68,18 @@ router.get('/ai-status', (req, res) => {
   });
 });
 
-// POST /api/config/ai-analyze - Force AI analysis
-router.post('/ai-analyze', async (req, res) => {
-  const result = await aiRegimeService.analyze();
-  res.json(result);
+// GET /api/config/market-data - Get current market data (for cowork/debug)
+router.get('/market-data', (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  try {
+    const data = fs.readFileSync(
+      path.join(__dirname, '../../../logs/market_data.json'), 'utf8'
+    );
+    res.json(JSON.parse(data));
+  } catch {
+    res.json({ error: 'No market data yet' });
+  }
 });
 
 // GET /api/config/news-status - News shield status

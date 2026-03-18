@@ -86,18 +86,16 @@ async function start() {
   if (connected) {
     logger.info('MT5 connected — starting services');
 
-    // Initialize AI services
-    aiRegimeService.init();
-    newsShieldService.init();
-
     // Start grid trading
     gridService.start();
 
-    // Start AI regime analysis
-    if (process.env.ANTHROPIC_API_KEY) {
-      aiRegimeService.start();
-      newsShieldService.start();
-    }
+    // Start file-based AI regime (reads from cowork's ai_config.json)
+    aiRegimeService.init();
+    aiRegimeService.start();
+
+    // Start calendar-based news shield
+    newsShieldService.init();
+    newsShieldService.start();
   } else {
     logger.warn(
       'MT5 not connected — running in monitor-only mode. Set META_API_TOKEN and META_API_ACCOUNT_ID in .env'

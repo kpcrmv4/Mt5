@@ -1,23 +1,20 @@
-const Anthropic = require('@anthropic-ai/sdk');
+/**
+ * News Shield Service — File-based + Calendar-based
+ *
+ * 1. Built-in calendar detection (NFP, CPI, FOMC) — no API needed
+ * 2. Claude Code cowork can override via ai_config.json news_shield_active field
+ * 3. Cowork does the real-time news analysis using its own subscription
+ */
+const fs = require('fs');
+const path = require('path');
 const logger = require('../utils/logger');
 const config = require('../../config/trading');
 const gridService = require('./grid.service');
 
-// Major economic events that affect gold
-const HIGH_IMPACT_KEYWORDS = [
-  'nfp', 'non-farm', 'fomc', 'fed rate', 'interest rate decision',
-  'cpi', 'inflation', 'ppi', 'gdp', 'employment',
-  'powell', 'fed chair', 'ecb rate', 'boe rate',
-];
-
-const CRITICAL_KEYWORDS = [
-  'war', 'invasion', 'nuclear', 'missile', 'attack',
-  'emergency rate', 'bank collapse', 'default', 'crisis',
-];
+const NEWS_STATUS_FILE = path.join(__dirname, '../../../logs/news_status.json');
 
 class NewsShieldService {
   constructor() {
-    this.client = null;
     this.intervalHandle = null;
     this.currentImpact = 'low';
     this.shieldActive = false;
@@ -26,25 +23,20 @@ class NewsShieldService {
   }
 
   init() {
-    if (!process.env.ANTHROPIC_API_KEY) {
-      logger.warn('ANTHROPIC_API_KEY not set — News Shield disabled');
-      return;
-    }
-    this.client = new Anthropic();
-    logger.info('News Shield service initialized');
+    logger.info('News Shield initialized (calendar + cowork mode)');
   }
 
   /**
-   * Start periodic news checking
+   * Start periodic calendar checking
    */
   start() {
-    if (!this.client || !config.NEWS_SHIELD_ENABLED) return;
+    if (!config.NEWS_SHIELD_ENABLED) return;
     const intervalMs = config.NEWS_CHECK_INTERVAL * 60 * 1000;
-    this.intervalHandle = setInterval(() => this.checkNews(), intervalMs);
+    this.intervalHandle = setInterval(() => this.checkCalendar(), intervalMs);
     logger.info(
-      `News Shield checking every ${config.NEWS_CHECK_INTERVAL} minutes`
+      `News Shield checking calendar every ${config.NEWS_CHECK_INTERVAL} minutes`
     );
-    this.checkNews();
+    this.checkCalendar();
   }
 
   stop() {
@@ -55,128 +47,124 @@ class NewsShieldService {
   }
 
   /**
-   * Check news and economic calendar
+   * Check built-in economic calendar (no API needed)
    */
-  async checkNews() {
-    try {
-      const now = new Date();
+  checkCalendar() {
+    const now = new Date();
+    this.lastCheck = now.toISOString();
+    this.upcomingEvents = [];
 
-      // Check pre-scheduled events (hardcoded major events)
-      const preEventShield = this._checkPreScheduledEvents(now);
-      if (preEventShield) {
-        this._activateShield(preEventShield.level, preEventShield.reason);
-        return;
+    // Check all known recurring events
+    const events = this._getScheduledEvents(now);
+    this.upcomingEvents = events;
+
+    // Find active event (within buffer window)
+    const activeEvent = events.find((e) => e.active);
+
+    if (activeEvent) {
+      if (activeEvent.impact === 'critical') {
+        this._activateShield('critical', activeEvent.event);
+      } else if (activeEvent.impact === 'high') {
+        this._activateShield('high', activeEvent.event);
+      } else if (activeEvent.impact === 'medium') {
+        this._reduceTradingActivity(activeEvent.event);
       }
-
-      // Use Claude to analyze current news context
-      const analysis = await this._analyzeNewsContext();
-      if (!analysis) return;
-
-      this.currentImpact = analysis.impact;
-      this.lastCheck = now.toISOString();
-
-      // Apply shield based on impact
-      if (analysis.impact === 'critical') {
-        this._activateShield('critical', analysis.reason);
-        // Emergency: close all positions
-        logger.warn(`CRITICAL NEWS: ${analysis.reason}`);
-      } else if (analysis.impact === 'high') {
-        this._activateShield('high', analysis.reason);
-      } else if (analysis.impact === 'medium') {
-        this._reduceTradingActivity(analysis.reason);
-      } else {
-        this._deactivateShield();
-      }
-
-      logger.info(
-        `News check | Impact: ${analysis.impact} | Shield: ${this.shieldActive}`
-      );
-    } catch (error) {
-      logger.error(`News check failed: ${error.message}`);
+    } else {
+      this._deactivateShield();
     }
+
+    // Write status file for cowork to read and potentially override
+    this._writeStatus();
+
+    logger.info(
+      `News calendar check | Impact: ${this.currentImpact} | Shield: ${this.shieldActive} | Events: ${events.length}`
+    );
   }
 
   /**
-   * Ask Claude to analyze current news for gold impact
+   * Get known recurring high-impact events
    */
-  async _analyzeNewsContext() {
-    try {
-      const response = await this.client.messages.create({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 512,
-        messages: [
-          {
-            role: 'user',
-            content: `You are a gold market news analyst. Based on your training data knowledge, assess if there are typically high-impact economic events scheduled around this time of the week/month that could cause extreme gold price volatility.
-
-Current time: ${new Date().toISOString()}
-Day of week: ${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()]}
-Day of month: ${new Date().getDate()}
-
-Consider:
-- Is it first Friday of month (NFP)?
-- Is there typically a Fed meeting around this time?
-- Any other major scheduled events?
-
-Respond in JSON:
-{
-  "impact": "low|medium|high|critical",
-  "reason": "<brief explanation>",
-  "upcoming_events": [{"event": "name", "expected_time": "approximate", "impact": "level"}],
-  "recommendation": "normal|reduce|pause|emergency_close"
-}`,
-          },
-        ],
-      });
-
-      const text = response.content[0].text;
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) return null;
-
-      const parsed = JSON.parse(jsonMatch[0]);
-      this.upcomingEvents = parsed.upcoming_events || [];
-      return parsed;
-    } catch (error) {
-      logger.error(`News analysis failed: ${error.message}`);
-      return null;
-    }
-  }
-
-  /**
-   * Check known recurring high-impact events
-   */
-  _checkPreScheduledEvents(now) {
-    const day = now.getDay();
+  _getScheduledEvents(now) {
+    const events = [];
+    const day = now.getDay(); // 0=Sun, 5=Fri
     const date = now.getDate();
     const hour = now.getUTCHours();
     const minute = now.getUTCMinutes();
-    const bufferMinutes = config.NEWS_PRE_EVENT_BUFFER;
+    const currentMinutes = hour * 60 + minute;
+    const buffer = config.NEWS_PRE_EVENT_BUFFER;
 
-    // NFP: First Friday of month, 12:30 UTC
+    // NFP: First Friday of month, 12:30 UTC (08:30 EST)
     if (day === 5 && date <= 7) {
-      const nfpMinutes = 12 * 60 + 30;
-      const currentMinutes = hour * 60 + minute;
-      if (
-        currentMinutes >= nfpMinutes - bufferMinutes &&
-        currentMinutes <= nfpMinutes + 60
-      ) {
-        return {
-          level: 'high',
-          reason: 'NFP release window — First Friday of month',
-        };
+      const eventTime = 12 * 60 + 30;
+      events.push({
+        event: 'Non-Farm Payrolls (NFP)',
+        time: '12:30 UTC',
+        impact: 'high',
+        active: currentMinutes >= eventTime - buffer && currentMinutes <= eventTime + 60,
+      });
+    }
+
+    // CPI: Usually around 10th-14th of month, 12:30 UTC
+    if (date >= 10 && date <= 14) {
+      const eventTime = 12 * 60 + 30;
+      const isLikelyCpiDay = day >= 2 && day <= 4; // Tue-Thu
+      if (isLikelyCpiDay) {
+        events.push({
+          event: 'CPI Release (potential)',
+          time: '12:30 UTC',
+          impact: 'high',
+          active: currentMinutes >= eventTime - buffer && currentMinutes <= eventTime + 60,
+        });
       }
     }
 
-    // FOMC: Usually Wednesday 18:00 UTC (8 times a year)
-    // CPI: Usually around 12th-14th of month, 12:30 UTC
-    if (date >= 12 && date <= 14 && hour >= 12 && hour <= 13) {
-      return {
-        level: 'high',
-        reason: 'Potential CPI release window',
-      };
+    // FOMC: 8 times/year, usually Wednesday 18:00 UTC
+    // Approximate: mid-month Jan,Mar,May,Jun,Jul,Sep,Nov,Dec
+    const month = now.getMonth(); // 0-indexed
+    const fomcMonths = [0, 2, 4, 5, 6, 8, 10, 11];
+    if (fomcMonths.includes(month) && date >= 14 && date <= 20 && day === 3) {
+      const eventTime = 18 * 60;
+      events.push({
+        event: 'FOMC Rate Decision (potential)',
+        time: '18:00 UTC',
+        impact: 'high',
+        active: currentMinutes >= eventTime - buffer && currentMinutes <= eventTime + 120,
+      });
     }
 
-    return null;
+    // PPI: Usually around 11th-15th of month, 12:30 UTC
+    if (date >= 11 && date <= 15 && day >= 2 && day <= 4) {
+      const eventTime = 12 * 60 + 30;
+      events.push({
+        event: 'PPI Release (potential)',
+        time: '12:30 UTC',
+        impact: 'medium',
+        active: currentMinutes >= eventTime - buffer && currentMinutes <= eventTime + 30,
+      });
+    }
+
+    // Weekly: Jobless Claims every Thursday 12:30 UTC
+    if (day === 4) {
+      const eventTime = 12 * 60 + 30;
+      events.push({
+        event: 'Weekly Jobless Claims',
+        time: '12:30 UTC',
+        impact: 'medium',
+        active: currentMinutes >= eventTime - 15 && currentMinutes <= eventTime + 15,
+      });
+    }
+
+    // Weekend gap protection: Friday close
+    if (day === 5 && hour >= 20) {
+      events.push({
+        event: 'Weekend Gap Risk',
+        time: 'Market close',
+        impact: 'medium',
+        active: true,
+      });
+    }
+
+    return events;
   }
 
   _activateShield(level, reason) {
@@ -196,10 +184,20 @@ Respond in JSON:
   }
 
   _reduceTradingActivity(reason) {
-    // Don't fully pause, but let grid service know to use smaller lots
     this.currentImpact = 'medium';
-    gridService.setNewsShield(false); // Don't pause, just reduce
+    gridService.setNewsShield(false);
     logger.info(`News impact MEDIUM: ${reason} — reducing lot sizes`);
+  }
+
+  _writeStatus() {
+    try {
+      fs.writeFileSync(
+        NEWS_STATUS_FILE,
+        JSON.stringify(this.getStatus(), null, 2)
+      );
+    } catch (error) {
+      // ignore
+    }
   }
 
   getStatus() {

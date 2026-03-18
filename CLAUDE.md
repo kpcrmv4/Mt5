@@ -153,13 +153,7 @@ Windows VPS (~$10/mo)          Vercel (free)        Supabase (free)
 4. รอ deploy (~2 นาที) → Copy **Account ID**
 5. ไป Settings → API Access → Copy **API Token**
 
-#### 1b. Anthropic API Key (สำหรับ AI + News Shield)
-1. ไปที่ https://console.anthropic.com → Sign Up
-2. Settings → API Keys → Create Key
-3. Copy **API Key** (`sk-ant-api03-...`)
-4. เติมเงิน $5-10 (AI ใช้ ~$0.01-0.05 ต่อการวิเคราะห์ 1 ครั้ง)
-
-#### 1c. MetaTrader 5 Demo Account
+#### 1b. MetaTrader 5 Demo Account
 1. ดาวน์โหลด MT5 จาก broker (Exness, XM, ICMarkets, etc.)
 2. เปิด Demo Account → เลือก account ที่มี XAU/USD
 3. จด Server, Login, Password ไว้ใช้กับ MetaAPI
@@ -191,7 +185,7 @@ npm install
 ```env
 META_API_TOKEN=eyJ...          # จาก MetaAPI Settings
 META_API_ACCOUNT_ID=abc123...  # จาก MetaAPI Dashboard
-ANTHROPIC_API_KEY=sk-ant-...   # จาก Anthropic Console
+# ไม่ต้องใส่ ANTHROPIC_API_KEY — ใช้ Claude Code cowork แทน!
 ```
 
 ### Step 4: Start
@@ -224,9 +218,10 @@ Claude จะอ่าน `.claude/cowork.md` แล้วเริ่ม monito
 |----------|----------|--------|
 | META_API_TOKEN | https://metaapi.cloud → Settings → API Access | ✅ |
 | META_API_ACCOUNT_ID | https://metaapi.cloud → Accounts → ID | ✅ |
-| ANTHROPIC_API_KEY | https://console.anthropic.com → API Keys | ✅ (AI+News) |
 | PORT | ไม่ต้องแก้ | ❌ default 3000 |
 | SYMBOL | ไม่ต้องแก้ | ❌ default XAUUSD |
+
+**ไม่ต้องมี ANTHROPIC_API_KEY** — AI ทำงานผ่าน Claude Code cowork โดยใช้ subscription ที่สมัครอยู่แล้ว
 
 ## Risk Management
 - Max Drawdown limit: 10% (auto-close all positions)
@@ -234,45 +229,43 @@ Claude จะอ่าน `.claude/cowork.md` แล้วเริ่ม monito
 - AI จะลด lot size อัตโนมัติในช่วง high volatility
 - Grid spacing ขยายตาม ATR เมื่อตลาดผันผวน
 
-## Claude Code Integration (Cowork + Dispatch)
+## Claude Code Integration (Cowork = AI Brain)
 
-### Cowork Mode — Background Monitoring
-Claude Code ทำงานเบื้องหลัง คอย monitor bot โดยอ่านไฟล์ใน repo:
-- `ai_reports/YYYY-MM-DD_HH-MM.md` — AI regime analysis reports
-- `logs/trades.jsonl` — Trade history (append-only)
-- `logs/performance.json` — Real-time performance snapshot
-- `logs/errors.log` — Error logs
+### Architecture: ไม่ต้องจ่าย API — ใช้ subscription เดิม
 
-**สิ่งที่ Cowork ทำได้:**
-- เตือนเมื่อ drawdown > threshold
-- แนะนำปรับ config เมื่อ win rate ลดลง
-- ตรวจ error logs แล้ว suggest fix
-- สรุป daily performance
+```
+Backend                          Claude Code Cowork
+┌────────────────┐               ┌─────────────────────┐
+│ เขียน market   │──────────────►│ อ่าน market_data     │
+│ data ทุก 10 วิ │  market_      │ วิเคราะห์ regime     │
+│                │  data.json    │ เช็คข่าว (web search) │
+│ อ่าน config    │◄──────────────│ เขียน ai_config      │
+│ ปรับ grid      │  ai_config.   │ แจ้งเตือน user       │
+└────────────────┘  json         └─────────────────────┘
+```
+
+### File-based Communication
+| File | เขียนโดย | อ่านโดย | เนื้อหา |
+|------|---------|--------|---------|
+| `logs/market_data.json` | Backend | Cowork | Indicators, config, performance |
+| `ai_config.json` | Cowork | Backend | Regime, config changes, news shield |
+| `logs/performance.json` | Backend | Cowork | Balance, DD, win rate |
+| `logs/trades.jsonl` | Backend | Cowork | Trade history |
+| `logs/news_status.json` | Backend | Cowork | Calendar events |
+| `logs/errors.log` | Backend | Cowork | Error logs |
+
+### Cowork ทำอะไรได้:
+1. **AI Regime Detection** — วิเคราะห์ indicators → เขียน regime ลง ai_config.json
+2. **News Analysis** — ใช้ web search เช็คข่าวแล้ว set news_shield_active
+3. **Config Optimization** — ปรับ ATR multiplier, grid levels, lot size ตามสภาวะตลาด
+4. **Monitoring** — เตือนเมื่อ DD สูง, win rate ต่ำ, error เกิดขึ้น
+5. **Daily Summary** — สรุป performance ประจำวัน
 
 ### Dispatch — Parallel Agents
 ใช้ dispatch ส่ง agents ทำงานพร้อมกัน:
 - **Monitor Agent**: ติดตาม trade logs + alert
 - **Analyst Agent**: วิเคราะห์ performance, สร้าง report
-- **Config Agent**: backtest parameter changes, แนะนำ optimization
-
-### Report Format (ai_reports/)
-```markdown
-# AI Regime Report - {timestamp}
-## Market State
-- Regime: Neutral/Mild Downtrend
-- RSI(14): 54.7
-- ATR Ratio: 1.00
-- EMA20/50: 5016 / 5031
-
-## Config Changes Applied
-- ATR_MULTIPLIER: 2.0 → 1.5
-- GRID_LEVELS: 4 → 6
-
-## Risk Assessment
-- Current DD: 4.48%
-- Open Positions: 0
-- Recommendation: ...
-```
+- **News Agent**: ค้นหาข่าวที่กระทบทองคำ via web search
 
 ## Coding Conventions
 - Backend: CommonJS modules, camelCase, JSDoc comments เฉพาะ public functions

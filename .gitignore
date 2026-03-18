@@ -9,3 +9,7 @@ logs/*.jsonl
 logs/*.json
 logs/*.log
 !.gitkeep
+
+# AI config (written by cowork, read by backend) — runtime only
+ai_config.json
+mt5-ea/gold_unlock_config.json

@@ -30,7 +30,8 @@ if [ ! -f .env ]; then
     echo ""
     echo "   META_API_TOKEN      — Get from https://metaapi.cloud"
     echo "   META_API_ACCOUNT_ID — Get from MetaAPI dashboard"
-    echo "   ANTHROPIC_API_KEY   — Get from https://console.anthropic.com"
+    echo ""
+    echo "   No API key needed for AI — Claude Code cowork handles it!"
     echo ""
     read -p "Press Enter after editing .env, or Ctrl+C to exit and edit later..."
 fi
