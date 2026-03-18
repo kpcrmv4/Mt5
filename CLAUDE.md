@@ -94,6 +94,28 @@ Mt5/
 └── docker-compose.yml
 ```
 
+## Deployment Phases
+
+### Phase 1 — Local Development (เริ่มต้น, ฟรี)
+```
+PC ของเรา (Windows/Mac)
+├── MT5 Terminal (demo account)
+├── Node.js Backend (localhost:3000)
+└── Angular Dashboard (localhost:4200)
+```
+ทุกอย่างรันบนเครื่องเดียว เหมาะสำหรับพัฒนาและทดสอบ
+
+### Phase 2 — Production (เมื่อเวิร์ค)
+```
+Windows VPS (~$10/mo)          Vercel (free)        Supabase (free)
+├── MT5 Terminal          →    Frontend Dashboard   Trade History DB
+├── Node.js Backend                                 Realtime updates
+└── Bridge to Supabase
+```
+- ย้าย MT5 + Backend ไป Windows VPS
+- Frontend ขึ้น Vercel (ฟรี) หรือเข้าผ่าน VPS IP
+- เพิ่ม Supabase สำหรับ trade history ระยะยาว (optional)
+
 ## Development
 
 ### Prerequisites
