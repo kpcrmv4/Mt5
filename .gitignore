@@ -1,0 +1,11 @@
+node_modules/
+.env
+dist/
+*.log
+
+# Keep directory structure but ignore generated content
+ai_reports/*.md
+logs/*.jsonl
+logs/*.json
+logs/*.log
+!.gitkeep

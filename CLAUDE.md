@@ -147,6 +147,46 @@ ng serve
 - AI จะลด lot size อัตโนมัติในช่วง high volatility
 - Grid spacing ขยายตาม ATR เมื่อตลาดผันผวน
 
+## Claude Code Integration (Cowork + Dispatch)
+
+### Cowork Mode — Background Monitoring
+Claude Code ทำงานเบื้องหลัง คอย monitor bot โดยอ่านไฟล์ใน repo:
+- `ai_reports/YYYY-MM-DD_HH-MM.md` — AI regime analysis reports
+- `logs/trades.jsonl` — Trade history (append-only)
+- `logs/performance.json` — Real-time performance snapshot
+- `logs/errors.log` — Error logs
+
+**สิ่งที่ Cowork ทำได้:**
+- เตือนเมื่อ drawdown > threshold
+- แนะนำปรับ config เมื่อ win rate ลดลง
+- ตรวจ error logs แล้ว suggest fix
+- สรุป daily performance
+
+### Dispatch — Parallel Agents
+ใช้ dispatch ส่ง agents ทำงานพร้อมกัน:
+- **Monitor Agent**: ติดตาม trade logs + alert
+- **Analyst Agent**: วิเคราะห์ performance, สร้าง report
+- **Config Agent**: backtest parameter changes, แนะนำ optimization
+
+### Report Format (ai_reports/)
+```markdown
+# AI Regime Report - {timestamp}
+## Market State
+- Regime: Neutral/Mild Downtrend
+- RSI(14): 54.7
+- ATR Ratio: 1.00
+- EMA20/50: 5016 / 5031
+
+## Config Changes Applied
+- ATR_MULTIPLIER: 2.0 → 1.5
+- GRID_LEVELS: 4 → 6
+
+## Risk Assessment
+- Current DD: 4.48%
+- Open Positions: 0
+- Recommendation: ...
+```
+
 ## Coding Conventions
 - Backend: CommonJS modules, camelCase, JSDoc comments เฉพาะ public functions
 - Frontend: Angular style guide, TypeScript strict mode
