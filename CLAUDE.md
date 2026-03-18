@@ -139,30 +139,94 @@ Windows VPS (~$10/mo)          Vercel (free)        Supabase (free)
 - Frontend ขึ้น Vercel (ฟรี) หรือเข้าผ่าน VPS IP
 - เพิ่ม Supabase สำหรับ trade history ระยะยาว (optional)
 
-## Development
+## Setup Guide — ขั้นตอนทั้งหมด
 
-### Prerequisites
-- Node.js 20+
-- MetaTrader 5 with demo/live account
-- MetaAPI Cloud account (free tier available)
-- Anthropic API key
+### Step 1: สมัคร Services (ทำครั้งเดียว)
 
-### Quick Start
+#### 1a. MetaAPI Cloud (เชื่อม MT5 ผ่าน cloud — ไม่ต้องเปิด MT5 terminal เอง)
+1. ไปที่ https://metaapi.cloud → Sign Up (free tier: 1 account)
+2. Dashboard → "New Account" → เลือก MetaTrader 5
+3. ใส่ข้อมูล MT5 demo account:
+   - **Server**: ชื่อ server ของ broker (เช่น `Exness-MT5Trial6`)
+   - **Login**: เลข MT5 account
+   - **Password**: investor/master password
+4. รอ deploy (~2 นาที) → Copy **Account ID**
+5. ไป Settings → API Access → Copy **API Token**
+
+#### 1b. Anthropic API Key (สำหรับ AI + News Shield)
+1. ไปที่ https://console.anthropic.com → Sign Up
+2. Settings → API Keys → Create Key
+3. Copy **API Key** (`sk-ant-api03-...`)
+4. เติมเงิน $5-10 (AI ใช้ ~$0.01-0.05 ต่อการวิเคราะห์ 1 ครั้ง)
+
+#### 1c. MetaTrader 5 Demo Account
+1. ดาวน์โหลด MT5 จาก broker (Exness, XM, ICMarkets, etc.)
+2. เปิด Demo Account → เลือก account ที่มี XAU/USD
+3. จด Server, Login, Password ไว้ใช้กับ MetaAPI
+
+### Step 2: Setup Project
+
+```bash
+# Clone & setup
+chmod +x setup.sh
+./setup.sh
+```
+
+หรือทำ manual:
 ```bash
 # Backend
 cd backend
-cp .env.example .env    # แก้ไข credentials
+cp .env.example .env
+# แก้ไข .env ใส่ credentials ที่ได้จาก Step 1
 npm install
-npm run dev
 
 # Frontend
 cd frontend
 npm install
-ng serve
 ```
 
-### Environment Variables
-ดู `backend/.env.example` สำหรับ variables ที่จำเป็น
+### Step 3: แก้ไข .env
+
+แก้ `backend/.env`:
+```env
+META_API_TOKEN=eyJ...          # จาก MetaAPI Settings
+META_API_ACCOUNT_ID=abc123...  # จาก MetaAPI Dashboard
+ANTHROPIC_API_KEY=sk-ant-...   # จาก Anthropic Console
+```
+
+### Step 4: Start
+
+```bash
+# Terminal 1 — Backend
+cd backend && npm run dev
+
+# Terminal 2 — Frontend
+cd frontend && npm start
+```
+
+เปิด http://localhost:4200 ดู dashboard
+
+### Step 5: ใช้ Claude Code Cowork
+
+```bash
+# ใน project directory
+claude --cowork
+```
+
+Claude จะอ่าน `.claude/cowork.md` แล้วเริ่ม monitor bot ให้อัตโนมัติ:
+- อ่าน `logs/performance.json` ดู balance/drawdown
+- อ่าน `ai_reports/*.md` ดู AI analysis ล่าสุด
+- เรียก API เช็คสถานะ bot
+- แจ้งเตือนเมื่อมีปัญหา
+
+### Environment Variables Reference
+| Variable | ได้จากไหน | จำเป็น |
+|----------|----------|--------|
+| META_API_TOKEN | https://metaapi.cloud → Settings → API Access | ✅ |
+| META_API_ACCOUNT_ID | https://metaapi.cloud → Accounts → ID | ✅ |
+| ANTHROPIC_API_KEY | https://console.anthropic.com → API Keys | ✅ (AI+News) |
+| PORT | ไม่ต้องแก้ | ❌ default 3000 |
+| SYMBOL | ไม่ต้องแก้ | ❌ default XAUUSD |
 
 ## Risk Management
 - Max Drawdown limit: 10% (auto-close all positions)

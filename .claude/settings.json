@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Glob(**)",
+      "Grep(**)",
+      "Bash(cat logs/*)",
+      "Bash(cat ai_reports/*)",
+      "Bash(curl http://localhost:3000/api/*)"
+    ]
+  }
+}
